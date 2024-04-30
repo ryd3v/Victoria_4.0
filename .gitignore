@@ -1,0 +1,10 @@
+/key
+/.venv/
+/output.mp3
+/venv/
+/user.wav
+/voice_response.mp3
+/build/
+/dist/
+/audio_files/
+/openai-env/
