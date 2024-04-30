@@ -194,8 +194,9 @@ class MainWindow(QWidget):
         if not pygame.mixer.music.get_busy():
             self.playback_timer.stop()
 
-    def handle_error(self, error):
-        print(f"Error occurred: {error}")
+    def handle_error(self, e):
+        error_message = f"Error: {str(e)}"
+        self.output_text.append(f'{error_message}')
 
     def custom_key_event(self, event):
         if event.key() == Qt.Key.Key_Return and event.modifiers() == Qt.KeyboardModifier.ShiftModifier:
@@ -233,7 +234,7 @@ class MainWindow(QWidget):
             chat_response = self.client.chat.completions.create(
                 model=self.MODEL,
                 messages=[
-                    {"role": "system", "content": "Your name is Alfred, and you are a personal assistant to Ryan the user"},
+                    {"role": "system", "content": "Your name is Victoria, and you are a personal assistant to Ryan the user"},
                     {"role": "user", "content": text}
                 ]
             )
@@ -256,7 +257,8 @@ class MainWindow(QWidget):
             pygame.mixer.music.play()
 
         except Exception as e:
-            print(f"stop recording and process audio error: {e}")
+           error_message = f"Error: {str(e)}"
+           self.output_text.append(f'{error_message}')
 
     def start_playback(self, output_file):
         try:
@@ -265,13 +267,15 @@ class MainWindow(QWidget):
             self.play_worker.error.connect(self.handle_error)
             self.play_worker.start()
         except Exception as e:
-            print("start playback error: {e}")
+            error_message = f"Error: {str(e)}"
+            self.output_text.append(f'{error_message}')
 
     def delete_audio_file(self, file_path):
         try:
             os.remove(file_path)
         except Exception as e:
-            print(f"Error deleting file: {e}")
+            error_message = f"Error: {str(e)}"
+            self.output_text.append(f'{error_message}')
 
     def cleanup(self):
         print("Running cleanup...")
@@ -285,7 +289,8 @@ class MainWindow(QWidget):
                     os.remove(file_path)
                     print(f"Deleted {file_path}")
         except Exception as e:
-            print(f"Error during cleanup: {e}")
+            error_message = f"Error: {str(e)}"
+            self.output_text.append(f'{error_message}')
 
 
 app = QApplication(sys.argv)
