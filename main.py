@@ -131,7 +131,7 @@ class MainWindow(QWidget):
 
         load_dotenv(dotenv_path=key)
         self.client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
-        self.MODEL = 'gpt-4-turbo'
+        self.MODEL = 'gpt-4o'
 
         self.audio_dir = os.path.join(os.path.dirname(__file__), 'audio_files')
         os.makedirs(self.audio_dir, exist_ok=True)
