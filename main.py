@@ -14,11 +14,12 @@ from scipy.io.wavfile import write
 
 from audio_recorder import AudioRecorder
 
-mic_path = os.path.join(os.path.dirname(__file__), 'mic.png')
-stop_path = os.path.join(os.path.dirname(__file__), 'stop.png')
-logo_path = os.path.join(os.path.dirname(__file__), 'icon.ico')
-key = os.path.join(os.path.dirname(__file__), 'key')
+MIC_PATH = os.path.join(os.path.dirname(__file__), 'mic.png')
+STOP_PATH = os.path.join(os.path.dirname(__file__), 'stop.png')
+LOGO_PATH = os.path.join(os.path.dirname(__file__), 'icon.ico')
+KEY_PATH = os.path.join(os.path.dirname(__file__), 'key')
 
+SYSTEM_MESSAGE= """Your name is Victoria, and you are a personal assistant to Ryan the user"""
 
 class Worker(QThread):
     finished = pyqtSignal(str)
@@ -101,7 +102,7 @@ class MainWindow(QWidget):
         # Recorder Button
         self.audio_recorder = AudioRecorder()
         self.record_button = QPushButton()
-        self.record_button.setIcon(QIcon(mic_path))
+        self.record_button.setIcon(QIcon(MIC_PATH))
         icon_size = QSize(32, 32)
         self.record_button.setIconSize(icon_size)
         self.record_button.setFixedSize(icon_size)
@@ -112,7 +113,7 @@ class MainWindow(QWidget):
 
         # Stop Button
         self.stop_button = QPushButton()
-        self.stop_button.setIcon(QIcon(stop_path))
+        self.stop_button.setIcon(QIcon(STOP_PATH))
         icon_size = QSize(32,32)
         self.stop_button.setIconSize(icon_size)
         self.stop_button.setFixedSize(icon_size)
@@ -129,7 +130,7 @@ class MainWindow(QWidget):
 
         self.setLayout(self.layout)
 
-        load_dotenv(dotenv_path=key)
+        load_dotenv(dotenv_path=KEY_PATH)
         self.client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
         self.MODEL = 'gpt-4o'
 
@@ -148,7 +149,7 @@ class MainWindow(QWidget):
             model=self.MODEL,
             messages=[
                 {"role": "system",
-                 "content": "Your name is Victoria, and you are a personal assistant to Ryan the user"},
+                 "content": SYSTEM_MESSAGE},
                 {"role": "user", "content": question}
             ]
         )
@@ -234,7 +235,7 @@ class MainWindow(QWidget):
             chat_response = self.client.chat.completions.create(
                 model=self.MODEL,
                 messages=[
-                    {"role": "system", "content": "Your name is Victoria, and you are a personal assistant to Ryan the user"},
+                    {"role": "system", "content": SYSTEM_MESSAGE},
                     {"role": "user", "content": text}
                 ]
             )
@@ -294,7 +295,7 @@ class MainWindow(QWidget):
 
 
 app = QApplication(sys.argv)
-app_icon = QIcon(logo_path)
+app_icon = QIcon(LOGO_PATH)
 window = MainWindow()
 window.setWindowIcon(app_icon)
 window.show()
