@@ -14,12 +14,20 @@ from scipy.io.wavfile import write
 
 from audio_recorder import AudioRecorder
 
+BG_COLOR = "$171717"
+INPUT_BG = "#212121"
+BUTTON_BG = "#383838"
+PLACEHOLDER_COLOR = "#909090"
+HOVER_BG = "#2563eb"
+TEXT_COLOR = "#ececec"
+
 MIC_PATH = os.path.join(os.path.dirname(__file__), 'mic.png')
 STOP_PATH = os.path.join(os.path.dirname(__file__), 'stop.png')
 LOGO_PATH = os.path.join(os.path.dirname(__file__), 'icon.ico')
 KEY_PATH = os.path.join(os.path.dirname(__file__), 'key')
+ICON_SIZE = QSize(32, 32)
 
-SYSTEM_MESSAGE= """Your name is Victoria, and you are a personal assistant to Ryan the user"""
+SYSTEM_MESSAGE= """You are an intelligent, friendly, and highly knowledgeable assistant named Victoria. Your task is to provide accurate, concise, and helpful responses to a wide array of questions. Whether the question is about general knowledge, technical information, personal advice, or any other topic, ensure your response is clear and useful."""
 
 class Worker(QThread):
     finished = pyqtSignal(str)
@@ -60,42 +68,41 @@ class MainWindow(QWidget):
         self.input_text = QTextEdit()
         self.input_text.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.input_text.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.input_text.setPlaceholderText("Ask your question...")
+        self.input_text.setPlaceholderText("How can I help you today?")
         self.input_text.setWordWrapMode(QTextOption.WrapMode.WordWrap)
         self.input_text.setMaximumWidth(950)
-        self.input_text.setFixedHeight(50)
-        self.input_text.setStyleSheet("QTextEdit {border-radius: 5px; background-color: #18181b;}")
+        self.input_text.setFixedHeight(60)
+        self.input_text.setStyleSheet(f"QTextEdit {{border-radius: 5px; background-color: {INPUT_BG};}}")
         text_font = QFont("Roboto", 12)
         self.input_text.setFont(text_font)
         self.input_text.keyPressEvent = self.custom_key_event
 
         # Send button
         self.send_button = QPushButton("Send")
-        self.send_button.setStyleSheet("""QPushButton {
-                                            background-color: #27272a;
-                                            color: #f4f4f5;
+        self.send_button.setStyleSheet(f"""QPushButton {{
+                                            background-color: {BUTTON_BG};
+                                            color: {TEXT_COLOR};
                                             border-radius: 8px;
                                             padding: 10px;
                                             font-size: 16px;
                                             font-weight: bold;
-                                        }QPushButton:hover {
-                                            background-color: #3b82f6;
-                                        }""")
+                                        }}QPushButton:hover {{
+                                            background-color: {HOVER_BG};
+                                        }}""")
 
+        # Output box
         self.output_text = QTextEdit()
         self.output_text.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.output_text.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.output_text.setStyleSheet("QTextEdit {border-radius: 5px; background-color: #18181b; color: #0ea5e9;}")
+        self.output_text.setStyleSheet(f"QTextEdit {{border-radius: 5px; background-color: {INPUT_BG}; color: {TEXT_COLOR};}}")
         output_font = QFont("Roboto", 12)
         self.output_text.setFont(output_font)
 
         self.layout = QVBoxLayout()
         self.layout.addWidget(self.input_text)
-
         self.layout.addWidget(self.output_text)
         self.layout.addWidget(self.send_button)
         self.setLayout(self.layout)
-
         self.output_text.setReadOnly(True)
         self.send_button.clicked.connect(self.send_button_clicked)
 
@@ -103,9 +110,9 @@ class MainWindow(QWidget):
         self.audio_recorder = AudioRecorder()
         self.record_button = QPushButton()
         self.record_button.setIcon(QIcon(MIC_PATH))
-        icon_size = QSize(32, 32)
-        self.record_button.setIconSize(icon_size)
-        self.record_button.setFixedSize(icon_size)
+        
+        self.record_button.setIconSize(ICON_SIZE)
+        self.record_button.setFixedSize(ICON_SIZE)
         self.record_button.setStyleSheet("QPushButton { border: none; }"
                                          "QPushButton::menu-indicator { image: none; }")
         self.layout.addWidget(self.record_button)
@@ -115,8 +122,8 @@ class MainWindow(QWidget):
         self.stop_button = QPushButton()
         self.stop_button.setIcon(QIcon(STOP_PATH))
         icon_size = QSize(32,32)
-        self.stop_button.setIconSize(icon_size)
-        self.stop_button.setFixedSize(icon_size)
+        self.stop_button.setIconSize(ICON_SIZE)
+        self.stop_button.setFixedSize(ICON_SIZE)
         self.stop_button.setStyleSheet("QPushButton { border: none; }"
                                          "QPushButton::menu-indicator { image: none; }")
         self.stop_button.clicked.connect(self.stop_audio)
@@ -145,19 +152,12 @@ class MainWindow(QWidget):
         pygame.mixer.music.stop()
 
     def fetch_response(self, question):
-        completion = self.client.chat.completions.create(
-            model=self.MODEL,
-            messages=[
-                {"role": "system",
-                 "content": SYSTEM_MESSAGE},
-                {"role": "user", "content": question}
-            ]
-        )
+        completion = self.create_chat_completion(question)
         res_text = completion.choices[0].message.content
         return res_text
 
     def send_button_clicked(self):
-        self.input_text.append('<font color="#0ea5e9" size="13px">Thinking...</font>')
+        self.input_text.append('<font color="#60a5fa" size="13px">Thinking...</font>')
         user_input = self.input_text.toPlainText()
 
         if user_input.lower() != 'quit':
@@ -210,7 +210,7 @@ class MainWindow(QWidget):
     # Recording functions
     def toggle_record(self):
         if not self.audio_recorder.is_recording:
-            self.input_text.append('<font color="#fa5252" size="12px">🔴</font>')
+            self.input_text.append('<font color="#dc2626" size="13px">🔴</font>')
             self.audio_recorder.start_recording()
         else:
             self.worker = Worker(self.stop_recording_and_process_audio)
@@ -232,13 +232,7 @@ class MainWindow(QWidget):
                 )
             text = transcript.text
 
-            chat_response = self.client.chat.completions.create(
-                model=self.MODEL,
-                messages=[
-                    {"role": "system", "content": SYSTEM_MESSAGE},
-                    {"role": "user", "content": text}
-                ]
-            )
+            chat_response = self.create_chat_completion(text)
             response_text = chat_response.choices[0].message.content
             self.output_text.append(f"{response_text}\n")
 
@@ -279,20 +273,22 @@ class MainWindow(QWidget):
             self.output_text.append(f'{error_message}')
 
     def cleanup(self):
-        print("Running cleanup...")
         try:
             for filename in os.listdir(self.audio_dir):
                 if filename.startswith("output_") and filename.endswith(".mp3") or \
                 filename == 'user.wav' or \
                 filename.startswith("voice_response_") and filename.endswith(".mp3"):
                     file_path = os.path.join(self.audio_dir, filename)
-                    print(f"Attempting to delete: {file_path}")
                     os.remove(file_path)
-                    print(f"Deleted {file_path}")
         except Exception as e:
             error_message = f"Error: {str(e)}"
             self.output_text.append(f'{error_message}')
 
+    def create_chat_completion(self, prompt):
+        return self.client.chat.completions.create(
+            model=self.MODEL,
+            messages=[{"role": "system", "content": SYSTEM_MESSAGE}, {"role": "user", "content": prompt}]
+        )
 
 app = QApplication(sys.argv)
 app_icon = QIcon(LOGO_PATH)
