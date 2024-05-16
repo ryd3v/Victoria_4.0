@@ -14,7 +14,7 @@ from scipy.io.wavfile import write
 
 from audio_recorder import AudioRecorder
 
-BG_COLOR = "$171717"
+BG_COLOR = "#171717"
 INPUT_BG = "#212121"
 BUTTON_BG = "#383838"
 PLACEHOLDER_COLOR = "#909090"
