@@ -14,8 +14,11 @@ class AudioRecorder:
         if not self.is_recording:
             self.is_recording = True
             self.recording_buffer = []
-            self.stream = sd.InputStream(callback=self.audio_callback, samplerate=self.sample_rate,
-                                         channels=self.channels)
+            self.stream = sd.InputStream(
+                callback=self.audio_callback,
+                samplerate=self.sample_rate,
+                channels=self.channels,
+            )
             self.stream.start()
 
     def stop_recording(self):
