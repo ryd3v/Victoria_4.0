@@ -27,6 +27,7 @@ LOGO_PATH = os.path.join(os.path.dirname(__file__), "icon.ico")
 KEY_PATH = os.path.join(os.path.dirname(__file__), "key")
 ICON_SIZE = QSize(32, 32)
 
+SYSTEM_VOICE = "shimmer"
 SYSTEM_MESSAGE = """You are an intelligent, friendly, and highly knowledgeable assistant named Victoria. Your task is to provide accurate, concise, and helpful responses to a wide array of questions. Whether the question is about general knowledge, technical information, personal advice, or any other topic, ensure your response is clear and useful."""
 
 
@@ -199,7 +200,7 @@ class MainWindow(QWidget):
         self.response_counter += 1
 
         audio_response = self.client.audio.speech.create(
-            model="tts-1-hd", voice="nova", input=text, response_format="mp3"
+            model="tts-1-hd", voice=SYSTEM_VOICE, input=text, response_format="mp3"
         )
         with open(output_path, "wb") as f:
             f.write(audio_response.content)
@@ -259,7 +260,7 @@ class MainWindow(QWidget):
 
             audio_response = self.client.audio.speech.create(
                 model="tts-1-hd",
-                voice="nova",
+                voice=SYSTEM_VOICE,
                 input=response_text,
                 response_format="mp3",
             )
