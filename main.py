@@ -207,6 +207,7 @@ class MainWindow(QWidget):
 
         pygame.mixer.music.load(output_path)
         pygame.mixer.music.play()
+        pygame.mixer.music.set_volume(1.0)
         self.playback_timer.start(100)
 
     def check_audio_playback(self):
@@ -274,6 +275,7 @@ class MainWindow(QWidget):
 
             pygame.mixer.music.load(voice_response_file_path)
             pygame.mixer.music.play()
+            pygame.mixer.music.set_volume(1.0)
 
         except Exception as e:
             error_message = f"Error: {str(e)}"
