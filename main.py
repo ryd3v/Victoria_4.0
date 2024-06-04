@@ -1,6 +1,7 @@
 import os
 import sys
-
+import json
+from datetime import datetime
 from PyQt6.QtCore import QThread, pyqtSignal, QSize
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QIcon
@@ -67,6 +68,8 @@ class MainWindow(QWidget):
         self.setStyleSheet("background-color: #09090b;")
         app.setStyle("Fusion")
 
+        self.history_file_path = os.path.join(os.path.dirname(__file__), "history.json")
+        
         # Input box
         self.input_text = QTextEdit()
         self.input_text.setVerticalScrollBarPolicy(
@@ -190,6 +193,7 @@ class MainWindow(QWidget):
         if hasattr(self, "play_worker") and self.play_worker.isRunning():
             self.play_worker.stop()
         self.output_text.append(f"{response_text}\n")
+        self.write_to_history(self.input_text.toPlainText(), response_text)
         self.play_worker = Worker(self.play_response_sound, response_text)
         self.play_worker.start()
         self.input_text.clear()
@@ -258,6 +262,7 @@ class MainWindow(QWidget):
             chat_response = self.create_chat_completion(text)
             response_text = chat_response.choices[0].message.content
             self.output_text.append(f"{response_text}\n")
+            self.write_to_history(text, response_text)
 
             audio_response = self.client.audio.speech.create(
                 model="tts-1-hd",
@@ -323,6 +328,21 @@ class MainWindow(QWidget):
             ],
         )
 
+    def write_to_history(self, user_input, response):
+        history_entry = {
+            "timestamp": datetime.now().isoformat(),
+            "user_input": user_input,
+            "response": response
+        }
+        if os.path.exists(self.history_file_path):
+            with open(self.history_file_path, "r", encoding="utf-8") as file:
+                history_data = json.load(file)
+        else:
+            history_data = []
+
+        history_data.append(history_entry)
+        with open(self.history_file_path, "w", encoding="utf-8") as file:
+            json.dump(history_data, file, indent=4)
 
 app = QApplication(sys.argv)
 app_icon = QIcon(LOGO_PATH)
