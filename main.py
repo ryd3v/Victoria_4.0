@@ -34,7 +34,11 @@ MIC_PATH = os.path.join(os.path.dirname(__file__), "mic.png")
 STOP_PATH = os.path.join(os.path.dirname(__file__), "stop.png")
 LOGO_PATH = os.path.join(os.path.dirname(__file__), "icon.ico")
 HISTORY_ICON_PATH = os.path.join(os.path.dirname(__file__), "history.png")
-
+if getattr(sys, "frozen", False):
+    BASE_DIR = sys._MEIPASS
+else:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+HISTORY_FILE_PATH = os.path.join(BASE_DIR, "history.json")
 KEY_PATH = os.path.join(os.path.dirname(__file__), "key")
 ICON_SIZE = QSize(32, 32)
 
@@ -379,7 +383,7 @@ class MainWindow(QWidget):
         )
 
         try:
-            with open("history.json", "r") as file:
+            with open(HISTORY_FILE_PATH, "r") as file:
                 history_data = json.load(file)
                 history_text = ""
                 for entry in history_data:
@@ -413,11 +417,11 @@ class MainWindow(QWidget):
         history_dialog.exec()
 
     def clear_history(self):
-        with open("history.json", "w") as file:
+        with open(HISTORY_FILE_PATH, "w") as file:
             json.dump([], file)
         confirmation_dialog = QDialog(self)
         confirmation_dialog.setWindowTitle("Confirmation")
-        confirmation_dialog.setGeometry(200, 200, 200, 100)
+        confirmation_dialog.setGeometry(50, 50, 100, 100)
         confirmation_layout = QVBoxLayout()
         confirmation_label = QLabel("History cleared successfully.")
         confirmation_layout.addWidget(confirmation_label)
