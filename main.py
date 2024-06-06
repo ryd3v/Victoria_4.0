@@ -6,7 +6,15 @@ from PyQt6.QtCore import QThread, pyqtSignal, QSize
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QIcon
 from PyQt6.QtGui import QTextOption
-from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QTextEdit
+from PyQt6.QtWidgets import (
+    QApplication,
+    QWidget,
+    QVBoxLayout,
+    QPushButton,
+    QTextEdit,
+    QDialog,
+    QLabel,
+)
 from PyQt6.QtWidgets import QHBoxLayout
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -71,7 +79,7 @@ class MainWindow(QWidget):
         app.setStyle("Fusion")
 
         self.history_file_path = os.path.join(os.path.dirname(__file__), "history.json")
-        
+
         # Input box
         self.input_text = QTextEdit()
         self.input_text.setVerticalScrollBarPolicy(
@@ -345,7 +353,7 @@ class MainWindow(QWidget):
         history_entry = {
             "timestamp": datetime.now().isoformat(),
             "user_input": user_input,
-            "response": response
+            "response": response,
         }
         if os.path.exists(self.history_file_path):
             with open(self.history_file_path, "r", encoding="utf-8") as file:
@@ -358,43 +366,64 @@ class MainWindow(QWidget):
             json.dump(history_data, file, indent=4)
 
     def view_history(self):
+        history_dialog = QDialog(self)
+        history_dialog.setWindowTitle("Chat History")
+        history_dialog.setGeometry(200, 200, 600, 400)
+        history_text_edit = QTextEdit()
+        history_text_edit.setReadOnly(True)
+
+        history_font = QFont("Roboto", 12)
+        history_text_edit.setFont(history_font)
+        history_text_edit.setVerticalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+
         try:
-            if os.path.exists(self.history_file_path):
-                with open(self.history_file_path, "r", encoding="utf-8") as file:
-                    history_data = json.load(file)
-                    history_text = ""
-                    for entry in history_data:
-                        history_text += f"Timestamp: {entry['timestamp']}\n"
-                        history_text += f"User Input: {entry['user_input']}\n"
-                        history_text += f"Response: {entry['response']}\n\n"
-
-                # Create a new popup window
-                self.history_window = QWidget()
-                self.history_window.setWindowTitle("History")
-                self.history_window.setGeometry(100, 100, 600, 400)
-
-                # Create a text edit to display the history
-                history_text_edit = QTextEdit()
-                history_text_edit.setReadOnly(True)
+            with open("history.json", "r") as file:
+                history_data = json.load(file)
+                history_text = ""
+                for entry in history_data:
+                    history_text += f"Timestamp: {entry['timestamp']}\n"
+                    history_text += f"User Input: {entry['user_input']}\n"
+                    history_text += f"Response: {entry['response']}\n\n"
                 history_text_edit.setPlainText(history_text)
-
-                history_font = QFont("Roboto", 11)
-                history_text_edit.setFont(history_font)
-
-                # Set layout for the popup window
-                history_layout = QVBoxLayout()
-                history_layout.addWidget(history_text_edit)
-                self.history_window.setLayout(history_layout)
-
-                # Show the popup window
-                self.history_window.show()
-
-            else:
-                self.output_text.append("No history found.")
-
         except Exception as e:
-            error_message = f"Error: {str(e)}"
-            self.output_text.append(f"{error_message}")
+            history_text_edit.setPlainText(f"Failed to load history: {e}")
+
+        clear_history_button = QPushButton("Clear History")
+        clear_history_button.setStyleSheet(
+            f"""QPushButton {{
+                background-color: {BUTTON_BG};
+                color: {TEXT_COLOR};
+                border-radius: 8px;
+                padding: 10px;
+                font-size: 16px;
+                font-weight: bold;
+            }}QPushButton:hover {{
+                background-color: {HOVER_BG};
+            }}"""
+        )
+        clear_history_button.clicked.connect(self.clear_history)
+
+        dialog_layout = QVBoxLayout()
+        dialog_layout.addWidget(history_text_edit)
+        dialog_layout.addWidget(clear_history_button)
+        history_dialog.setLayout(dialog_layout)
+
+        history_dialog.exec()
+
+    def clear_history(self):
+        with open("history.json", "w") as file:
+            json.dump([], file)
+        confirmation_dialog = QDialog(self)
+        confirmation_dialog.setWindowTitle("Confirmation")
+        confirmation_dialog.setGeometry(200, 200, 200, 100)
+        confirmation_layout = QVBoxLayout()
+        confirmation_label = QLabel("History cleared successfully.")
+        confirmation_layout.addWidget(confirmation_label)
+        confirmation_dialog.setLayout(confirmation_layout)
+        confirmation_dialog.exec()
+
 
 app = QApplication(sys.argv)
 app_icon = QIcon(LOGO_PATH)
