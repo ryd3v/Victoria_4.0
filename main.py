@@ -25,11 +25,13 @@ TEXT_COLOR = "#ececec"
 MIC_PATH = os.path.join(os.path.dirname(__file__), "mic.png")
 STOP_PATH = os.path.join(os.path.dirname(__file__), "stop.png")
 LOGO_PATH = os.path.join(os.path.dirname(__file__), "icon.ico")
+HISTORY_ICON_PATH = os.path.join(os.path.dirname(__file__), "history.png")
+
 KEY_PATH = os.path.join(os.path.dirname(__file__), "key")
 ICON_SIZE = QSize(32, 32)
 
 SYSTEM_VOICE = "shimmer"
-SYSTEM_MESSAGE = """You are an intelligent, friendly, and highly knowledgeable assistant named Victoria. Your task is to provide accurate, concise, and helpful responses to a wide array of questions. Whether the question is about general knowledge, technical information, personal advice, or any other topic, ensure your response is clear and useful."""
+SYSTEM_MESSAGE = """Your name is Victoria, and my name is Ryan. You are an intelligent, friendly, and highly knowledgeable assistant. You should provide accurate, concise, and helpful responses to a wide array of questions, and from time to time, you can have a little humor, let's say 10%. When a question is about general knowledge, technical information, personal advice, or any other topic, ensure your response is clear and concise."""
 
 
 class Worker(QThread):
@@ -143,7 +145,6 @@ class MainWindow(QWidget):
         # Stop Button
         self.stop_button = QPushButton()
         self.stop_button.setIcon(QIcon(STOP_PATH))
-        icon_size = QSize(32, 32)
         self.stop_button.setIconSize(ICON_SIZE)
         self.stop_button.setFixedSize(ICON_SIZE)
         self.stop_button.setStyleSheet(
@@ -153,8 +154,20 @@ class MainWindow(QWidget):
         self.stop_button.clicked.connect(self.stop_audio)
         self.layout.addWidget(self.stop_button)
 
+        # View History Button
+        self.view_history_button = QPushButton()
+        self.view_history_button.setIcon(QIcon(HISTORY_ICON_PATH))
+        self.view_history_button.setIconSize(ICON_SIZE)
+        self.view_history_button.setFixedSize(ICON_SIZE)
+        self.view_history_button.setStyleSheet(
+            "QPushButton { border: none; }"
+            "QPushButton::menu-indicator { image: none; }"
+        )
+        self.view_history_button.clicked.connect(self.view_history)
+
         buttons_layout = QHBoxLayout()
         buttons_layout.addWidget(self.send_button)
+        buttons_layout.addWidget(self.view_history_button)
         buttons_layout.addWidget(self.stop_button)
         buttons_layout.addWidget(self.record_button)
         self.layout.addLayout(buttons_layout)
@@ -343,6 +356,45 @@ class MainWindow(QWidget):
         history_data.append(history_entry)
         with open(self.history_file_path, "w", encoding="utf-8") as file:
             json.dump(history_data, file, indent=4)
+
+    def view_history(self):
+        try:
+            if os.path.exists(self.history_file_path):
+                with open(self.history_file_path, "r", encoding="utf-8") as file:
+                    history_data = json.load(file)
+                    history_text = ""
+                    for entry in history_data:
+                        history_text += f"Timestamp: {entry['timestamp']}\n"
+                        history_text += f"User Input: {entry['user_input']}\n"
+                        history_text += f"Response: {entry['response']}\n\n"
+
+                # Create a new popup window
+                self.history_window = QWidget()
+                self.history_window.setWindowTitle("History")
+                self.history_window.setGeometry(100, 100, 600, 400)
+
+                # Create a text edit to display the history
+                history_text_edit = QTextEdit()
+                history_text_edit.setReadOnly(True)
+                history_text_edit.setPlainText(history_text)
+
+                history_font = QFont("Roboto", 11)
+                history_text_edit.setFont(history_font)
+
+                # Set layout for the popup window
+                history_layout = QVBoxLayout()
+                history_layout.addWidget(history_text_edit)
+                self.history_window.setLayout(history_layout)
+
+                # Show the popup window
+                self.history_window.show()
+
+            else:
+                self.output_text.append("No history found.")
+
+        except Exception as e:
+            error_message = f"Error: {str(e)}"
+            self.output_text.append(f"{error_message}")
 
 app = QApplication(sys.argv)
 app_icon = QIcon(LOGO_PATH)
