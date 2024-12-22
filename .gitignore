@@ -9,3 +9,4 @@
 /audio_files/
 /openai-env/
 history.json
+.DS_Store
