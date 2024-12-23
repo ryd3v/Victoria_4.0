@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-
+test
 
 a = Analysis(
     ['main.py'],
