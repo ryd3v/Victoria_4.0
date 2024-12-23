@@ -30,9 +30,16 @@ exe = EXE(
     upx_exclude=[],
     runtime_tmpdir=None,
     console=False,
+    windowed=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+)
+
+app = BUNDLE(exe,
+         name='Victoria.app',
+         icon=None,
+         bundle_identifier=None,
 )
